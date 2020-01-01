@@ -1,10 +1,11 @@
-﻿############################################################
+############################################################
 #AD FS/WAP 情報採取スクリプト
-#LastUpdate:2019/02/28
+#LastUpdate:2020/01/01
 #
 ###採取情報###
 #ADFS/WAP 構成情報
 #ADFS Admin イベント ログ
+#WAP Admin イベント ログ <- 2020/1/1 追加
 #application/system/security イベント ログ
 #Certutil 出力結果
 #ipconfig /all
@@ -200,6 +201,9 @@ Function GetLog ($oschk,$ProductType) {
             $adfslog = $FolderName + "\ADFSDebug.evtx"
             wevtutil epl "AD FS Tracing/Debug" $adfslog
 
+            $adfslog = $FolderName + "\WAPAdmin.evtx"
+            wevtutil epl "Microsoft-Windows-WebApplicationProxy/Admin" $adfslog
+
             $adfslog = $FolderName + "\Get-WebApplicationProxyApplication.txt"
             Get-WebApplicationProxyApplication | fl | Out-File  $adfslog
 
@@ -353,6 +357,9 @@ Function GetLog ($oschk,$ProductType) {
 
             $adfslog = $FolderName + "\ADFSDebug.evtx"
             wevtutil epl "AD FS Tracing/Debug" $adfslog
+
+            $adfslog = $FolderName + "\WAPAdmin.evtx"
+            wevtutil epl "Microsoft-Windows-WebApplicationProxy/Admin" $adfslog
 
             $adfslog = $FolderName + "\Get-WebApplicationProxyApplication.txt"
             Get-WebApplicationProxyApplication | fl | Out-File  $adfslog
