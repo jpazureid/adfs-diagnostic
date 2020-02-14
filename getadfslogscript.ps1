@@ -1,5 +1,7 @@
 ############################################################
+
 #AD FS/WAP 情報採取スクリプト
+
 #LastUpdate:2020/01/01
 #
 ###採取情報###
@@ -13,14 +15,16 @@
 #Get-HotFix
 ############################################################
 
+
 ######初期チェック。 OS バージョンと ProductType の確認処理
+
 Function startup(){
     ###OS バージョンチェック
     #6.3 未満 = NG
     #6.4 未満 = W2k12R2
     #それ以外 = W2k16 以上
-
     ##OS バージョン取得
+
     $oschk = ""
     $tmpOSVersion = Get-WmiObject Win32_OperatingSystem
     $tmpOSBuildNumber = $tmpOSVersion.BuildNumber
@@ -28,10 +32,12 @@ Function startup(){
     $tmpOSVersion = $tmpOSVersion.Version
     $tmpVersion = $tmpOSVersion.Replace( ".$tmpOSBuildNumber", "" )
     ##数値化
+
     $WinVer = [decimal]$tmpVersion
 
     ##判定処理
     # Windows Server 2012 R2/Windows 8.1 以降のいずれかでなければ false を返す。
+
     if($WinVer -lt "6.3"){
         $oschk = "false"
     }elseif($WinVer -lt "6.4"){
@@ -40,18 +46,23 @@ Function startup(){
         $oschk = "W2k16"
     }
     ##OS バージョン、 ProductType を返す。
+
     return $oschk,$ProductType
  }
 
 
 ######情報採取停止処理
+
 Function GetLog ($oschk,$ProductType) {
     ###保存先フォルダー作成
+
     $str_path = (Convert-Path .)
     $FolderName = $str_path + "\" + $(Get-Date).ToString("yyyyMMdd") + "_" + $(Get-Date).ToString("HHmm") + "_" + $Env:COMPUTERNAME
     
     ##フォルダー作成
+
     #フォルダー作成に失敗した場合は Catch に移動し処理を停止する。
+
     try{
         $Item = New-Item -Path $FolderName -ItemType directory
         $FolderName = $Item.FullName
@@ -63,6 +74,7 @@ Function GetLog ($oschk,$ProductType) {
     }
    ##フォルダー パスの確認
    #フォルダーが確認できなかった失敗した場合は処理を停止する
+
     $PathChk = Test-Path $FolderName
     if($PathChk -eq "True"){
         Write-Host "Created folder "$FolderName
@@ -73,8 +85,10 @@ Function GetLog ($oschk,$ProductType) {
 
 
     ###ProductType が 1 (Client) 以外の場合役割の確認を行う。
+
     if($ProductType -ne "1"){
         ###AD FS の役割の有無のチェック
+
         $ADFSCheck = (Get-WindowsFeature -Name ADFS-Federation).InstallState
 
         if ($ADFSCheck -eq "Installed"){
@@ -84,6 +98,7 @@ Function GetLog ($oschk,$ProductType) {
         }
 
         #WAP の役割の有無のチェック
+
         $WAPCheck = (Get-WindowsFeature -Name Web-Application-Proxy).InstallState
 
         if ($WAPCheck -eq "Installed"){
@@ -94,6 +109,7 @@ Function GetLog ($oschk,$ProductType) {
     }
 
     ###セキュリティ・アプリケーション・システム・ CAPI2 ログを evtx 形式で取得
+
     $tmpsystem = $FolderName + "\System.evtx"
     wevtutil epl system $tmpsystem
     $tmpapp = $FolderName + "\Application.evtx"
@@ -104,16 +120,20 @@ Function GetLog ($oschk,$ProductType) {
     wevtutil epl "Microsoft-Windows-CAPI2/Operational" $tmpcapi2
 
     ###ipconfig の結果を txt 形式で取得
+
     $tmpip = $FolderName + "\ipconfig.txt"
     ipconfig /all > $tmpip
 
     ##Hotfix 取得
+
     $hotfix = $FolderName + "\GetHotFix.txt"
     Get-HotFix | fl | Out-File  $hotfix
     
     ### OS バージョンごとに AD FS Admin ログと各種 Get コマンドの結果を取得
+
     if ($oschk -eq "W2k12R2"){
     ## AD FS 3.0
+
         if($ADFSCheck -eq "true"){
             $adfslog = $FolderName + "\ADFSAdmin.evtx"
             wevtutil epl "AD FS/Admin" $adfslog
@@ -194,6 +214,7 @@ Function GetLog ($oschk,$ProductType) {
             netsh http show ssl | Out-File $adfslog
         }
     ## WAP 3.0
+
         if($WAPCheck -eq "true"){
             $adfslog = $FolderName + "\ADFSAdmin.evtx"
             wevtutil epl "AD FS/Admin" $adfslog
@@ -226,6 +247,7 @@ Function GetLog ($oschk,$ProductType) {
     }
     if ($oschk -eq "W2k16"){
     ## AD FS 4.0
+
         if($ADFSCheck -eq "true"){
             $adfslog = $FolderName + "\ADFSAdmin.evtx"
             wevtutil epl "AD FS/Admin" $adfslog
@@ -351,6 +373,7 @@ Function GetLog ($oschk,$ProductType) {
             netsh http show ssl > $adfslog
         }
     ## WAP 4.0
+
         if($WAPCheck -eq "true"){
             $adfslog = $FolderName + "\ADFSAdmin.evtx"
             wevtutil epl "AD FS/Admin" $adfslog
@@ -381,6 +404,7 @@ Function GetLog ($oschk,$ProductType) {
         }
     }
     ## 証明書情報取得
+
     $certlog = $FolderName + "\cert-root.txt"
     certutil -v -silent -store ROOT | Out-File $certlog
   
@@ -414,19 +438,23 @@ Function GetLog ($oschk,$ProductType) {
 #######################開始処理#############################
 
 #####管理者権限チェック。管理者権限でない場合に処理を終了する。
+
 if (-not(([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator"))) {
     Write-Host "Start PowerShell with adminisrator privilege."
     exit
 }
 
 #####Startup 処理、[0] に OS バージョン情報を、 [1] に ProductType の値を入れる。 1=Client 2=DC 3=Server
+
 $chk = startup
 
 #####OS チェック、6.3 未満のビルドの場合は処理を終了する
+
 if($chk[0] -eq "false"){
     Write-Host "You have to run this script on Windows Server 2012 R2 or later version."
     exit
 }else{
     #OS がバージョン通りであれば OSVersion と ProductType を提供してログ採取を開始する。
+
     GetLog $chk[0] $chk[1]
 }
