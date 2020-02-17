@@ -203,7 +203,7 @@ Function GetLog ($oschk,$ProductType) {
 
             $adfslog = $FolderName + "\Get-AdfsProperties.txt"
             Get-AdfsProperties | fl | Out-File  $adfslog
-            Write-Output "======== WIASupportedUserAgents ==========" | Out-File  $adfslog -Append
+            Write-Output "======== WIASupportedUserAgents ========" | Out-File  $adfslog -Append
             Get-AdfsProperties |select -ExpandProperty WIASupportedUserAgents | Out-File  $adfslog -Append
 
             Get-AdfsProperties |select -ExpandProperty WIASupportedUserAgents | Out-File  $adfslog -Append
