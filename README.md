@@ -13,8 +13,7 @@ Get diagnostic data of Active Directory Federation Service (AD FS)
 
 対象 OS
 
-* Windows Server 2012 R2
-* Windows Server 2016
+* Windows Server 2012 R2 以降
 
 
 実行手順は以下の通りです。
