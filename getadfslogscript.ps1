@@ -146,6 +146,15 @@ Function GetLog ($oschk,$ProductType) {
     $tasklist_svc = $FolderName + "\tasklist_svc.txt"
     tasklist /svc > $tasklist_svc
 
+    $CertHashFolder = "C:\Windows\ServiceProfiles\NetworkService\AppData\Roaming\Microsoft\SystemCertificates\My\Certificates"
+
+    if(Test-Path $CertHashFolder) {
+        $WapCertsHash = $FolderName + "\wap-certs-hash.txt"
+        Get-ChildItem $CertHashFolder | Select-Object Name, @{l="CreationTimeUtc";e={$_.CreationTimeUtc.ToString("yyyy-MM-ddThh:
+mm:ssZ")}} | ConvertTo-Csv -NoTypeInformation | Out-File $WapCertsHash
+    }
+
+
 
     ### OS バージョンごとに AD FS Admin ログと各種 Get コマンドの結果を取得
 
@@ -631,6 +640,9 @@ Function GetLog ($oschk,$ProductType) {
 
     $certlog = $FolderName + "\cert-user-my.txt"
     certutil -v -silent -store -user MY | Out-File $certlog
+
+    $certlog = $FolderName + "\cert-adfstrusteddevices.txt"
+    certutil -v -silent -store AdfsTrustedDevices  | Out-File $certlog
 
     Write-Host "Complate: Export Folder : " $FolderName
 }
