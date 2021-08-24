@@ -643,7 +643,11 @@ Function GetLog ($oschk,$ProductType) {
 
         if(Test-Path $CertHashFolder) {
             $WapCertsHash = $FolderName + "\wap-certs-hash.txt"
-            Get-ChildItem $CertHashFolder | Select-Object Name, @{l="CreationTimeUtc";e={$_.CreationTimeUtc.ToString("yyyy-MM-ddThh:mm:ssZ")}} | ConvertTo-Csv -NoTypeInformation | Out-File $WapCertsHash
+            Get-ChildItem $CertHashFolder `
+            | Sort-Object -Property CreationTimeUtc -Descending `
+            | Select-Object Name, @{l="CreationTimeUtc";e={$_.CreationTimeUtc.ToString("yyyy-MM-ddThh:mm:ssZ")}} `
+            | ConvertTo-Csv -NoTypeInformation `
+            | Out-File $WapCertsHash
         }
     }
 }
