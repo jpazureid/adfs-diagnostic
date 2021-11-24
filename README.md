@@ -10,6 +10,8 @@ Get diagnostic data of Active Directory Federation Service (AD FS)
 * ipconfig /all
 * netsh http show ssl 出力結果
 * Get-HotFix
+* ProxyTrust 証明書情報
+* Http.err log
 
 対象 OS
 
