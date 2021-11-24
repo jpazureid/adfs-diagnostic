@@ -1,35 +1,37 @@
 ############################################################
-#AD FS/WAP æƒ…å ±æ¡å–ã‚¹ã‚¯ãƒªãƒ—ãƒˆ
+#AD FS/WAP î•ñÌæƒXƒNƒŠƒvƒg
 #LastUpdate:2020/02/17
 #
-###æ¡å–æƒ…å ±###
-#ADFS/WAP æ§‹æˆæƒ…å ±
-#ADFS Admin ã‚¤ãƒ™ãƒ³ãƒˆ ãƒ­ã‚°
-#WAP Admin ã‚¤ãƒ™ãƒ³ãƒˆ ãƒ­ã‚° <- 2020/1/1 è¿½åŠ 
-#application/system/security ã‚¤ãƒ™ãƒ³ãƒˆ ãƒ­ã‚°
-#Certutil å‡ºåŠ›çµæœ
+###Ìæî•ñ###
+#ADFS/WAP \¬î•ñ
+#ADFS Admin ƒCƒxƒ“ƒg ƒƒO
+#WAP Admin ƒCƒxƒ“ƒg ƒƒO <- 2020/1/1 ’Ç‰Á
+#application/system/security ƒCƒxƒ“ƒg ƒƒO
+#Certutil o—ÍŒ‹‰Ê
 #ipconfig /all
-#netsh http show ssl å‡ºåŠ›çµæœ
+#netsh http show ssl o—ÍŒ‹‰Ê
 #Get-HotFix
-##2020/2/17 è¿½åŠ 
-#WIASupportedUserAgents ã®ä¸€è¦§
+##2020/2/17 ’Ç‰Á
+#WIASupportedUserAgents ‚Ìˆê——
 #netstat -anot
 #netsh http show urlacl
 #tasklist /svc
-#W2k19 ã§è¿½åŠ ã•ã‚ŒãŸ AD FS ã‚³ãƒãƒ³ãƒ‰
+#W2k19 ‚Å’Ç‰Á‚³‚ê‚½ AD FS ƒRƒ}ƒ“ƒh
+## 2021/11/24 ’Ç‰Á
+#http.err log 
 ############################################################
 
 
-######åˆæœŸãƒã‚§ãƒƒã‚¯ã€‚ OS ãƒãƒ¼ã‚¸ãƒ§ãƒ³ã¨ ProductType ã®ç¢ºèªå‡¦ç†
+######‰Šúƒ`ƒFƒbƒNB OS ƒo[ƒWƒ‡ƒ“‚Æ ProductType ‚ÌŠm”Fˆ—
 
 Function startup(){
-    ###OS ãƒãƒ¼ã‚¸ãƒ§ãƒ³ãƒã‚§ãƒƒã‚¯
-    #6.3 æœªæº€ = NG
-    #6.4 æœªæº€ = W2k12R2
-    #6.4 ä»¥ä¸Šã‹ã¤ BuildNumber ãŒ 17763 æœªæº€ = W2k16
-    #ãã‚Œä»¥å¤– = W2k19 ä»¥ä¸Š
+    ###OS ƒo[ƒWƒ‡ƒ“ƒ`ƒFƒbƒN
+    #6.3 –¢– = NG
+    #6.4 –¢– = W2k12R2
+    #6.4 ˆÈã‚©‚Â BuildNumber ‚ª 17763 –¢– = W2k16
+    #‚»‚êˆÈŠO = W2k19 ˆÈã
     
-    ##OS ãƒãƒ¼ã‚¸ãƒ§ãƒ³å–å¾—
+    ##OS ƒo[ƒWƒ‡ƒ“æ“¾
 
     $oschk = ""
     $tmpOSVersion = Get-WmiObject Win32_OperatingSystem
@@ -37,13 +39,13 @@ Function startup(){
     $ProductType = (Get-WmiObject Win32_OperatingSystem).ProductType
     $tmpOSVersion = $tmpOSVersion.Version
     $tmpVersion = $tmpOSVersion.Replace( ".$tmpOSBuildNumber", "" )
-    ##æ•°å€¤åŒ–
+    ##”’l‰»
 
     $WinVer = [decimal]$tmpVersion
 
-    ##åˆ¤å®šå‡¦ç†
-    # Windows Server 2012 R2/Windows 8.1 ä»¥é™ã®ã„ãšã‚Œã‹ã§ãªã‘ã‚Œã° false ã‚’è¿”ã™ã€‚
-    # 20200217 : Windows Server 2016/2019 ã®åˆ¤å®šæ¡ä»¶ã‚’è¿½åŠ 
+    ##”»’èˆ—
+    # Windows Server 2012 R2/Windows 8.1 ˆÈ~‚Ì‚¢‚¸‚ê‚©‚Å‚È‚¯‚ê‚Î false ‚ğ•Ô‚·B
+    # 20200217 : Windows Server 2016/2019 ‚Ì”»’èğŒ‚ğ’Ç‰Á
 
     if($WinVer -lt "6.3"){
         $oschk = "false"
@@ -54,22 +56,22 @@ Function startup(){
     }else{
         $oschk = "W2k19"
     }
-    ##OS ãƒãƒ¼ã‚¸ãƒ§ãƒ³ã€ ProductType ã‚’è¿”ã™ã€‚
+    ##OS ƒo[ƒWƒ‡ƒ“A ProductType ‚ğ•Ô‚·B
 
     return $oschk,$ProductType
  }
 
 
-######æƒ…å ±æ¡å–åœæ­¢å‡¦ç†
+######î•ñÌæ’â~ˆ—
 
 Function GetLog ($oschk,$ProductType) {
-    ###ä¿å­˜å…ˆãƒ•ã‚©ãƒ«ãƒ€ãƒ¼ä½œæˆ
+    ###•Û‘¶æƒtƒHƒ‹ƒ_[ì¬
 
     $str_path = (Convert-Path .)
     $FolderName = $str_path + "\" + $(Get-Date).ToString("yyyyMMdd") + "_" + $(Get-Date).ToString("HHmm") + "_" + $Env:COMPUTERNAME
     
-    ##ãƒ•ã‚©ãƒ«ãƒ€ãƒ¼ä½œæˆ
-    #ãƒ•ã‚©ãƒ«ãƒ€ãƒ¼ä½œæˆã«å¤±æ•—ã—ãŸå ´åˆã¯ Catch ã«ç§»å‹•ã—å‡¦ç†ã‚’åœæ­¢ã™ã‚‹ã€‚
+    ##ƒtƒHƒ‹ƒ_[ì¬
+    #ƒtƒHƒ‹ƒ_[ì¬‚É¸”s‚µ‚½ê‡‚Í Catch ‚ÉˆÚ“®‚µˆ—‚ğ’â~‚·‚éB
 
     try{
         $Item = New-Item -Path $FolderName -ItemType directory
@@ -80,8 +82,8 @@ Function GetLog ($oschk,$ProductType) {
         Write-Host "There is an error : $error" -ForegroundColor Yellow
         exit
     }
-   ##ãƒ•ã‚©ãƒ«ãƒ€ãƒ¼ ãƒ‘ã‚¹ã®ç¢ºèª
-   #ãƒ•ã‚©ãƒ«ãƒ€ãƒ¼ãŒç¢ºèªã§ããªã‹ã£ãŸå¤±æ•—ã—ãŸå ´åˆã¯å‡¦ç†ã‚’åœæ­¢ã™ã‚‹
+   ##ƒtƒHƒ‹ƒ_[ ƒpƒX‚ÌŠm”F
+   #ƒtƒHƒ‹ƒ_[‚ªŠm”F‚Å‚«‚È‚©‚Á‚½¸”s‚µ‚½ê‡‚Íˆ—‚ğ’â~‚·‚é
 
     $PathChk = Test-Path $FolderName
     if($PathChk -eq "True"){
@@ -92,10 +94,10 @@ Function GetLog ($oschk,$ProductType) {
     }
 
 
-    ###ProductType ãŒ 1 (Client) ä»¥å¤–ã®å ´åˆå½¹å‰²ã®ç¢ºèªã‚’è¡Œã†ã€‚
+    ###ProductType ‚ª 1 (Client) ˆÈŠO‚Ìê‡–ğŠ„‚ÌŠm”F‚ğs‚¤B
 
     if($ProductType -ne "1"){
-        ###AD FS ã®å½¹å‰²ã®æœ‰ç„¡ã®ãƒã‚§ãƒƒã‚¯
+        ###AD FS ‚Ì–ğŠ„‚Ì—L–³‚Ìƒ`ƒFƒbƒN
 
         $ADFSCheck = (Get-WindowsFeature -Name ADFS-Federation).InstallState
 
@@ -105,7 +107,7 @@ Function GetLog ($oschk,$ProductType) {
             $ADFSCheck = "false"
         }
 
-        #WAP ã®å½¹å‰²ã®æœ‰ç„¡ã®ãƒã‚§ãƒƒã‚¯
+        #WAP ‚Ì–ğŠ„‚Ì—L–³‚Ìƒ`ƒFƒbƒN
 
         $WAPCheck = (Get-WindowsFeature -Name Web-Application-Proxy).InstallState
 
@@ -116,7 +118,9 @@ Function GetLog ($oschk,$ProductType) {
         }
     }
 
-    ###ã‚»ã‚­ãƒ¥ãƒªãƒ†ã‚£ãƒ»ã‚¢ãƒ—ãƒªã‚±ãƒ¼ã‚·ãƒ§ãƒ³ãƒ»ã‚·ã‚¹ãƒ†ãƒ ãƒ» CAPI2 ãƒ­ã‚°ã‚’ evtx å½¢å¼ã§å–å¾—
+    ###ƒZƒLƒ…ƒŠƒeƒBEƒAƒvƒŠƒP[ƒVƒ‡ƒ“EƒVƒXƒeƒ€E CAPI2 ƒƒO‚ğ evtx Œ`®‚Åæ“¾
+
+    Write-Host "Gathering event logs..."
 
     $tmpsystem = $FolderName + "\System.evtx"
     wevtutil epl system $tmpsystem
@@ -127,12 +131,12 @@ Function GetLog ($oschk,$ProductType) {
     $tmpcapi2 = $FolderName + "\capi2.evtx"
     wevtutil epl "Microsoft-Windows-CAPI2/Operational" $tmpcapi2
 
-    ###ipconfig ã®çµæœã‚’ txt å½¢å¼ã§å–å¾—
+    ###ipconfig ‚ÌŒ‹‰Ê‚ğ txt Œ`®‚Åæ“¾
 
     $tmpip = $FolderName + "\ipconfig.txt"
     ipconfig /all > $tmpip
 
-    ##Hotfix å–å¾—
+    ##Hotfix æ“¾
 
     $hotfix = $FolderName + "\GetHotFix.txt"
     Get-HotFix | fl | Out-File  $hotfix
@@ -146,13 +150,18 @@ Function GetLog ($oschk,$ProductType) {
     $tasklist_svc = $FolderName + "\tasklist_svc.txt"
     tasklist /svc > $tasklist_svc
 
+    Write-Host "Completed gathering event logs."
 
-    ### OS ãƒãƒ¼ã‚¸ãƒ§ãƒ³ã”ã¨ã« AD FS Admin ãƒ­ã‚°ã¨å„ç¨® Get ã‚³ãƒãƒ³ãƒ‰ã®çµæœã‚’å–å¾—
+
+    ### OS ƒo[ƒWƒ‡ƒ“‚²‚Æ‚É AD FS Admin ƒƒO‚ÆŠeí Get ƒRƒ}ƒ“ƒh‚ÌŒ‹‰Ê‚ğæ“¾
 
     if ($oschk -eq "W2k12R2"){
     ## AD FS 3.0
 
         if($ADFSCheck -eq "true"){
+
+            Write-Host "Gathering AD FS Config..."
+
             $adfslog = $FolderName + "\ADFSAdmin.evtx"
             wevtutil epl "AD FS/Admin" $adfslog
 
@@ -234,10 +243,15 @@ Function GetLog ($oschk,$ProductType) {
 
             $adfslog = $FolderName + "\netsh_ssl.txt"
             netsh http show ssl | Out-File $adfslog
+
+            Write-Host "Completed gathering AD FS Config."
         }
     ## WAP 3.0
 
         if($WAPCheck -eq "true"){
+
+            Write-Host "Gathering WAP Config..."
+
             $adfslog = $FolderName + "\ADFSAdmin.evtx"
             wevtutil epl "AD FS/Admin" $adfslog
 
@@ -265,12 +279,17 @@ Function GetLog ($oschk,$ProductType) {
             $adfslog = $FolderName + "\netsh_ssl.txt"
             netsh http show ssl > $adfslog
 
+            Write-Host "Completed gathering WAP Config."
+
         }
     }
     if ($oschk -eq "W2k16"){
     ## AD FS 4.0
 
         if($ADFSCheck -eq "true"){
+
+            Write-Host "Gathering AD FS Config..."
+
             $adfslog = $FolderName + "\ADFSAdmin.evtx"
             wevtutil epl "AD FS/Admin" $adfslog
 
@@ -395,10 +414,15 @@ Function GetLog ($oschk,$ProductType) {
 
             $adfslog = $FolderName + "\netsh_ssl.txt"
             netsh http show ssl > $adfslog
+
+            Write-Host "Completed gathering AD FS Config."
         }
     ## WAP 4.0
 
         if($WAPCheck -eq "true"){
+
+            Write-Host "Gathering WAP Config..."
+
             $adfslog = $FolderName + "\ADFSAdmin.evtx"
             wevtutil epl "AD FS/Admin" $adfslog
 
@@ -425,15 +449,20 @@ Function GetLog ($oschk,$ProductType) {
 
             $adfslog = $FolderName + "\netsh_ssl.txt"
             netsh http show ssl > $adfslog
+
+            Write-Host "Completed gathering WAP Config."
         }
     }
     
-    #20200217 è¿½è¨˜/ Windows Server 2019 AD FS/WAP ç”¨
+    #20200217 ’Ç‹L/ Windows Server 2019 AD FS/WAP —p
 
     if ($oschk -eq "W2k19"){
     ## AD FS 5.0
 
         if($ADFSCheck -eq "true"){
+
+            Write-Host "Gathering AD FS Config..."
+
             $adfslog = $FolderName + "\ADFSAdmin.evtx"
             wevtutil epl "AD FS/Admin" $adfslog
 
@@ -570,10 +599,15 @@ Function GetLog ($oschk,$ProductType) {
 
             $adfslog = $FolderName + "\netsh_ssl.txt"
             netsh http show ssl > $adfslog
+
+            Write-Host "Completed gathering AD FS Config."
         }
     ## WAP 5.0
 
         if($WAPCheck -eq "true"){
+
+            Write-Host "Gathering WAP Config..."
+
             $adfslog = $FolderName + "\ADFSAdmin.evtx"
             wevtutil epl "AD FS/Admin" $adfslog
 
@@ -600,10 +634,14 @@ Function GetLog ($oschk,$ProductType) {
 
             $adfslog = $FolderName + "\netsh_ssl.txt"
             netsh http show ssl > $adfslog
+
+            Write-Host "Completed gathering WAP Config."
         }
     }
 
-    ## è¨¼æ˜æ›¸æƒ…å ±å–å¾—
+    ## Ø–¾‘î•ñæ“¾
+
+    Write-Host "Gathering certutil logs..."
 
     $certlog = $FolderName + "\cert-root.txt"
     certutil -v -silent -store ROOT | Out-File $certlog
@@ -635,10 +673,15 @@ Function GetLog ($oschk,$ProductType) {
     $certlog = $FolderName + "\cert-adfstrusteddevices.txt"
     certutil -v -silent -store AdfsTrustedDevices  | Out-File $certlog
 
-    Write-Host "Complate: Export Folder : " $FolderName
+    Write-Host "Completed gathering certutil logs."
 
+
+    ## WAP ‚Ì ProxyTrust Ø–¾‘‚Ìî•ñ‚ğæ“¾
 
     if($WAPCheck -eq "true"){
+
+        Write-Host "Gathering ProxyTrust certificate info..."
+
         $CertHashFolder = "C:\Windows\ServiceProfiles\NetworkService\AppData\Roaming\Microsoft\SystemCertificates\My\Certificates"
 
         if(Test-Path $CertHashFolder) {
@@ -648,30 +691,49 @@ Function GetLog ($oschk,$ProductType) {
             | Select-Object Name, @{l="CreationTimeUtc";e={$_.CreationTimeUtc.ToString("yyyy-MM-ddThh:mm:ssZ")}} `
             | ConvertTo-Csv -NoTypeInformation `
             | Out-File $WapCertsHash
+
+            Write-Host "Completed gathering ProxyTrust certificate info."
         }
     }
+
+
+    ## 2021/11/24 ’Ç‰Á
+    ## Http.err ƒƒO‚ğæ“¾
+
+    Write-Host "Gathering Http err logs..."
+
+    $HttplogFolder = $Env:SYSTEMROOT + "\system32\LogFiles\HTTPERR"
+    if(Test-Path $HttplogFolder) {
+        $HttplogOutPath = $FolderName + "\HttperrLogs"
+        Copy-Item $HttplogFolder -destination $HttplogOutPath -recurse
+
+        Write-Host "Completed gathering Http err logs."
+    }
+
+    Write-Host "Complate: Export Folder : " $FolderName
+
 }
 
-#######################é–‹å§‹å‡¦ç†#############################
+#######################ŠJnˆ—#############################
 
-#####ç®¡ç†è€…æ¨©é™ãƒã‚§ãƒƒã‚¯ã€‚ç®¡ç†è€…æ¨©é™ã§ãªã„å ´åˆã«å‡¦ç†ã‚’çµ‚äº†ã™ã‚‹ã€‚
+#####ŠÇ—ÒŒ ŒÀƒ`ƒFƒbƒNBŠÇ—ÒŒ ŒÀ‚Å‚È‚¢ê‡‚Éˆ—‚ğI—¹‚·‚éB
 
 if (-not(([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator"))) {
     Write-Host "Start PowerShell with adminisrator privilege."
     exit
 }
 
-#####Startup å‡¦ç†ã€[0] ã« OS ãƒãƒ¼ã‚¸ãƒ§ãƒ³æƒ…å ±ã‚’ã€ [1] ã« ProductType ã®å€¤ã‚’å…¥ã‚Œã‚‹ã€‚ 1=Client 2=DC 3=Server
+#####Startup ˆ—A[0] ‚É OS ƒo[ƒWƒ‡ƒ“î•ñ‚ğA [1] ‚É ProductType ‚Ì’l‚ğ“ü‚ê‚éB 1=Client 2=DC 3=Server
 
 $chk = startup
 
-#####OS ãƒã‚§ãƒƒã‚¯ã€6.3 æœªæº€ã®ãƒ“ãƒ«ãƒ‰ã®å ´åˆã¯å‡¦ç†ã‚’çµ‚äº†ã™ã‚‹
+#####OS ƒ`ƒFƒbƒNA6.3 –¢–‚Ìƒrƒ‹ƒh‚Ìê‡‚Íˆ—‚ğI—¹‚·‚é
 
 if($chk[0] -eq "false"){
     Write-Host "You have to run this script on Windows Server 2012 R2 or later version."
     exit
 }else{
-    #OS ãŒãƒãƒ¼ã‚¸ãƒ§ãƒ³é€šã‚Šã§ã‚ã‚Œã° OSVersion ã¨ ProductType ã‚’æä¾›ã—ã¦ãƒ­ã‚°æ¡å–ã‚’é–‹å§‹ã™ã‚‹ã€‚
+    #OS ‚ªƒo[ƒWƒ‡ƒ“’Ê‚è‚Å‚ ‚ê‚Î OSVersion ‚Æ ProductType ‚ğ’ñ‹Ÿ‚µ‚ÄƒƒOÌæ‚ğŠJn‚·‚éB
 
     GetLog $chk[0] $chk[1]
 }

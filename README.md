@@ -34,5 +34,5 @@ Get diagnostic data of Active Directory Federation Service (AD FS)
 
  スクリプトの実行が許可されていない場合 (Restricted) は、下記コマンドを利用してスクリプトを実行することが可能です。
 ```
-Powershell.exe -ExecutionPolicy RemoteSigned -File .\getadfslogscript.ps1
+Powershell.exe -ExecutionPolicy Bypass -File .\getadfslogscript.ps1
 ```
